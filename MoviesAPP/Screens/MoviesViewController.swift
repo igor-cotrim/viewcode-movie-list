@@ -29,25 +29,26 @@ final class MoviesViewController: UIViewController {
         return searchController
     }()
     
-    private var movies: [Movie]? {
-        didSet {
-            tableView.reloadData()
-        }
-    }
-    private let service: MoviesService = MoviesService()
-    
     private lazy var tableView: UITableView = {
         let tableView = UITableView()
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.backgroundColor = .clear
         tableView.dataSource = self
+        tableView.delegate = self
         tableView.rowHeight = 150
-        tableView.estimatedRowHeight = 150
         tableView.registerCell(type: MovieCell.self)
         
         return tableView
     }()
+    
+    private var movies: [Movie]? {
+        didSet {
+            tableView.reloadData()
+        }
+    }
+    private let service: MoviesService = MoviesService()
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -91,22 +92,21 @@ final class MoviesViewController: UIViewController {
 }
 
 // MARK: - TableView DataSource
-extension MoviesViewController: UITableViewDataSource {
+extension MoviesViewController: UITableViewDataSource, UITableViewDelegate {
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return movies?.count ?? 0
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let movieCell = tableView.dequeueCell(
-            withType: MovieCell.self,
-            for: indexPath
-        ) as? MovieCell
-        
-        if let model = movies?[indexPath.row] {
-            movieCell?.configure(model: model)
+        guard let movieCell = tableView.dequeueCell(withType: MovieCell.self, for: indexPath) as? MovieCell else {
+            return UITableViewCell()
         }
         
-        return movieCell ?? UITableViewCell()
+        if let model = movies?[indexPath.row] {
+            movieCell.configure(model: model)
+        }
+        
+        return movieCell
     }
 }
 
@@ -120,13 +120,13 @@ extension MoviesViewController: ViewCode {
     func setupConstraints() {
         NSLayoutConstraint.activate([
             imageView.topAnchor.constraint(equalTo: view.topAnchor),
-            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             imageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            imageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             imageView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             
             tableView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            tableView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             tableView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
         ])
     }
@@ -144,5 +144,9 @@ extension MoviesViewController: UISearchBarDelegate {
             return
         }
         searchhMovies(term: searchText)
+    }
+    
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        fetchMovies()
     }
 }
