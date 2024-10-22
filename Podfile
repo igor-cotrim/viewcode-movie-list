@@ -6,6 +6,6 @@ target 'MoviesAPP' do
   use_frameworks!
 
   # Pods for MoviesAPP
-  pod 'Kingfisher', '~> 7.0'
+  pod 'Kingfisher', '~> 8.1'
 
 end
